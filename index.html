@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>webug.js</title>
+    <style>
+        .webug-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            font-color: #000;
+            font-size: 16px;
+            margin: 5px;
+            padding: 5px;
+            border-top: 3px solid #eeefee;
+        }
+        .webug-command {
+            padding: 5px 0;
+        }
+        .webug-command::before {
+            content: ">";
+            color: rgb(53, 131, 252);
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .webug-information {
+            margin: 0;
+            padding: 0;
+        }
+        .webug-echo {
+            font-size: 16px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eeefee;
+            list-style: none;
+        }
+        .webug-echo::before {
+            content: ">";
+            color: rgb(133, 149, 173);
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .webug-true {
+            font-color: #066;
+            border-bottom: 1px solid #eeefee;
+            padding: 5px 10px;
+            list-style: none;
+        }
+        .webug-error {
+            color: #E81D20;
+            border-bottom: 1px solid #eeefee;
+            padding: 5px 10px;
+            list-style: none;
+        }
+        .webug-error::before {
+            content: "error: ";
+        }
+        .webug-edit {
+            width: 80%;
+            font-size: 16px;
+            border: none;
+            outline: none;
+         }
+        .webug-clear {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            padding: 2px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="webug-container">
+        <ul class="webug-information">
+            <li class="webug-echo">test</li>
+            <li class="webug-true">1</li>
+            <li class="webug-error">2</li>
+        </ul>
+        <div class="webug-command">
+            <input class="webug-edit"/>
+        </div>
+        <button class="webug-clear">Clear</button>
+    </div>
+</body>
+</html>
