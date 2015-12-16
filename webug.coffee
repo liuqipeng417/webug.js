@@ -158,24 +158,26 @@
       else
         attr = []
         for tmp of obj
-          if (obj.hasOwnProperty tmp) then attr.push tmp
+          attr.push tmp
+        console.log(obj)
         attr
 
     # 比较两个字符串，将后者字符串倒匹配，并添加到前者，重复字符串不添加
     # 如: resplaceString('xxx.abc', 'abcd') 返回 xxx.abcd
     resplaceString = (a, b) ->
 
-
     # 数据处理
-    # 因为重载了 console.log 方法，假如有 console.log 语句会显示这句话出来
     render:  (msg, console) ->
       if msg is ''
-        UNDEFINED
+        [TRUE, '']
       else
+        # 判断是否为 console.log 语句
+        # 其他 js 文件的 'console.log('xxx')' 语句将不会显示出来
+        # 只显示 xxx
         if not console? then @append 'echo', msg
         try
           data = eval.call win, msg
-          [TRUE, JSON.stringify data]
+          [TRUE, if isObejct data then data.toString() else data]
         catch error
           [ERROR, error]
 
@@ -221,15 +223,23 @@
       if array.length > 8 then size = 8 else size = array.length + 1
       @select.setAttribute 'size', size
 
+    clearSelect: ->
+      @select.innerHTML = ''
+
     # 侦听 input 变化
     inputListner: (e) ->
       val = @input.value
       pos = val.lastIndexOf('.')
       if pos is -1
         env = win
+        # 输入后清空当前环境，之前把这个清空放在 input 回车事件里面，出现一个大坑
+        # 我们输入完之后删除 input 的内容也会在不断监听变化
+        # 因为存在字符串中'.'，导致又把 @env 设置了环境，导致清除失败
+        @env = ''
       else
-        @env = val.substring 0, pos
-        env = eval @env
+        tmp= val.substring 0, pos
+        @env = tmp + '.'
+        env = eval tmp
         # alert JSON.stringify env
       val = val.substring pos + 1, val.length
       @appendInSelect @searchAttribute val, env
@@ -251,20 +261,23 @@
 
     constructor: ->
       # 是否初始化以及隐藏
-      @isInit = @isHide = no
+      @isInit = no
 
       @msg = ''
 
       @body = getBody()
 
       @stack = new Stack()
-
-      #  输入语句当前环境, 默认 window
-      @env = ''
       #  初始化
       @init()
 
+      @isInit = yes
+
     init: ->
+      @isHide = no
+      #  输入语句当前环境, 默认 window
+      @env = ''
+
       css = doc.createElement 'style'
       css.innerHTML = STYLE
 
@@ -290,6 +303,7 @@
           @stack.push @msg
           data = @render @msg
           @append data[0], data[1]
+          @input.value = ''
         # up
         else if e.keyCode is 38
           #@input.value = @stack.up()
@@ -307,16 +321,17 @@
         # console.log(@searchAttribute @input.value, win)
         @inputListner(e)
 
-
       bind @select, KEYDOWN, (e) =>
         if e.keyCode is 13
-          @input.value = @env + '.' + @select.value
+          #alert(@env)
+          @input.value = @env + @select.value
           @input.focus()
+          @clearSelect()
         else if e.keyCode is 37
           @input.focus()
           # 按键 keydown 下去就会跑到 input 上，按键起来时会触发到 input 的 keypress事件，所以阻止后续默认事件
           e.preventDefault()
-          #console.log @input.selectionStart
+
       bind @select, CLICK, (e) =>
         @input.value = @select.value
         @input.focus()
@@ -334,6 +349,7 @@
 
 
       # 劫持 console.log 方法
+      # 生效条件为将 webug.js 放在要执行js语句前面
       win.console.log = (val) =>
         data = @render val, yes
         @append(data[0], data[1])

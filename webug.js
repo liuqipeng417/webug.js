@@ -91,10 +91,9 @@
         } else {
           attr = [];
           for (tmp in obj) {
-            if (obj.hasOwnProperty(tmp)) {
-              attr.push(tmp);
-            }
+            attr.push(tmp);
           }
+          console.log(obj);
           return attr;
         }
       };
@@ -104,14 +103,14 @@
       Webug.prototype.render = function(msg, console) {
         var data, error, error1;
         if (msg === '') {
-          return UNDEFINED;
+          return [TRUE, ''];
         } else {
           if (console == null) {
             this.append('echo', msg);
           }
           try {
             data = eval.call(win, msg);
-            return [TRUE, JSON.stringify(data)];
+            return [TRUE, isObejct(data) ? data.toString() : data];
           } catch (error1) {
             error = error1;
             return [ERROR, error];
@@ -175,15 +174,21 @@
         return this.select.setAttribute('size', size);
       };
 
+      Webug.prototype.clearSelect = function() {
+        return this.select.innerHTML = '';
+      };
+
       Webug.prototype.inputListner = function(e) {
-        var env, pos, val;
+        var env, pos, tmp, val;
         val = this.input.value;
         pos = val.lastIndexOf('.');
         if (pos === -1) {
           env = win;
+          this.env = '';
         } else {
-          this.env = val.substring(0, pos);
-          env = eval(this.env);
+          tmp = val.substring(0, pos);
+          this.env = tmp + '.';
+          env = eval(tmp);
         }
         val = val.substring(pos + 1, val.length);
         return this.appendInSelect(this.searchAttribute(val, env));
@@ -199,16 +204,18 @@
       };
 
       function Webug() {
-        this.isInit = this.isHide = false;
+        this.isInit = false;
         this.msg = '';
         this.body = getBody();
         this.stack = new Stack();
-        this.env = '';
         this.init();
+        this.isInit = true;
       }
 
       Webug.prototype.init = function() {
         var css, div;
+        this.isHide = false;
+        this.env = '';
         css = doc.createElement('style');
         css.innerHTML = STYLE;
         div = doc.createElement('div');
@@ -232,7 +239,8 @@
               _this.msg = _this.input.value;
               _this.stack.push(_this.msg);
               data = _this.render(_this.msg);
-              return _this.append(data[0], data[1]);
+              _this.append(data[0], data[1]);
+              return _this.input.value = '';
             } else if (e.keyCode === 38) {
               return _this.select.focus();
             } else if (e.keyCode === 40) {
@@ -248,8 +256,9 @@
         bind(this.select, KEYDOWN, (function(_this) {
           return function(e) {
             if (e.keyCode === 13) {
-              _this.input.value = _this.env + '.' + _this.select.value;
-              return _this.input.focus();
+              _this.input.value = _this.env + _this.select.value;
+              _this.input.focus();
+              return _this.clearSelect();
             } else if (e.keyCode === 37) {
               _this.input.focus();
               return e.preventDefault();
