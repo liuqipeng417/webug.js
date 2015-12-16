@@ -34,13 +34,25 @@
 
     })();
     Webug = (function() {
-      var HTML, STYLE, UNDEFINED, append, bind, dom, getBody, isArray, isNull, isNumber, isObejct, render, unbind;
+      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, STYLE, TRUE, UNDEFINED, bind, dom, getAttrs, getBody, isArray, isNull, isNumber, isObejct, resplaceString, unbind;
 
-      STYLE = '.webug-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; font-color: #000; font-size: 16px; margin: 5px; padding: 5px; border-top: 3px solid #eeefee; overflow-y: scroll; } .webug-command { padding: 5px 0; } .webug-command::before { content: ">"; color: rgb(53, 131, 252); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-information { margin: 0; padding: 0; } .webug-echo { font-size: 16px; padding: 5px 0; border-bottom: 1px solid #eeefee; list-style: none; } .webug-echo::before { content: ">"; color: rgb(133, 149, 173); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-true { font-color: #066; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error { color: #E81D20; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error::before { content: "error: "; } .webug-edit { width: 80%; font-size: 16px; border: none; outline: none; } .webug-clear { position: fixed; bottom: 10px; right: 10px; padding: 2px 5px; }';
+      STYLE = '.webug-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; font-color: #000; font-size: 16px; margin: 5px; padding: 5px; border-top: 3px solid #eeefee; overflow-y: scroll; } .webug-command { padding: 5px 0; } .webug-command::before { content: ">"; color: rgb(53, 131, 252); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-information { margin: 0; padding: 0; } .webug-echo { font-size: 16px; padding: 5px 0; border-bottom: 1px solid #eeefee; list-style: none; } .webug-echo::before { content: ">"; color: rgb(133, 149, 173); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-true { font-color: #066; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error { color: #E81D20; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error::before { content: "error: "; } .webug-edit { width: 80%; font-size: 16px; border: none; outline: none; } .webug-tips { position: fixed; right: 80px; bottom: 190px; border: 1px solid #000; } .webug-clear { position: fixed; bottom: 10px; right: 10px; padding: 2px 5px; }';
 
-      HTML = '<div id="webug-container" class="webug-container"> <ul id="webug-content" class="webug-information"> </ul> <div class="webug-command"> <input id="webug-input" class="webug-edit"/> </div> <button id="webug-btn-clear" class="webug-clear">Clear</button> </div>';
+      HTML = '<div id="webug-container" class="webug-container"> <ul id="webug-content" class="webug-information"> </ul> <div class="webug-command"> <input id="webug-input" class="webug-edit"/> </div> <select id="webug-select" class="webug-tips"> </select> <button id="webug-btn-clear" class="webug-clear">Clear</button> </div>';
 
       UNDEFINED = void 0;
+
+      CLICK = 'click';
+
+      KEYDOWN = 'keydown';
+
+      TRUE = 'true';
+
+      ERROR = 'error';
+
+      INPUT = 'input';
+
+      CHANGE = 'change';
 
       dom = function(ele) {
         return doc.querySelector(ele);
@@ -72,29 +84,50 @@
         return doc.body || dom("body") || dom("html");
       };
 
-      render = function(msg, console) {
-        var error, error1;
+      getAttrs = function(obj) {
+        var attr, tmp;
+        if (!isObejct(obj)) {
+          return [];
+        } else {
+          attr = [];
+          for (tmp in obj) {
+            if (obj.hasOwnProperty(tmp)) {
+              attr.push(tmp);
+            }
+          }
+          return attr;
+        }
+      };
+
+      resplaceString = function(a, b) {};
+
+      Webug.prototype.render = function(msg, console) {
+        var data, error, error1;
         if (msg === '') {
           return UNDEFINED;
         } else {
           if (console == null) {
-            append('echo', msg);
+            this.append('echo', msg);
           }
           try {
-            return ['true', eval.call(window, msg)];
+            data = eval.call(win, msg);
+            return [TRUE, JSON.stringify(data)];
           } catch (error1) {
             error = error1;
-            return ['error', error];
+            return [ERROR, error];
           }
         }
       };
 
-      append = function(trueOrErr, value) {
+      Webug.prototype.handleObject = function() {};
+
+      Webug.prototype.append = function(trueOrErr, value) {
         var li;
         li = doc.createElement('li');
         li.setAttribute('class', 'webug-' + trueOrErr);
         li.innerHTML = value;
-        return dom("#webug-content").appendChild(li);
+        this.content.appendChild(li);
+        return this.scrollBottom();
       };
 
       Webug.prototype.clear = function() {
@@ -113,9 +146,56 @@
         return this;
       };
 
+      Webug.prototype.searchAttribute = function(val, env) {
+        var array, attrs, i, key, len;
+        array = [];
+        attrs = getAttrs(env);
+        for (i = 0, len = attrs.length; i < len; i++) {
+          key = attrs[i];
+          if (key.indexOf(val) === 0) {
+            array.push(key);
+          }
+        }
+        return array;
+      };
+
+      Webug.prototype.appendInSelect = function(array) {
+        var all, i, len, size, tmp;
+        all = '';
+        for (i = 0, len = array.length; i < len; i++) {
+          tmp = array[i];
+          all += '<option>' + tmp + '</option>';
+        }
+        this.select.innerHTML = all;
+        if (array.length > 8) {
+          size = 8;
+        } else {
+          size = array.length + 1;
+        }
+        return this.select.setAttribute('size', size);
+      };
+
+      Webug.prototype.inputListner = function(e) {
+        var env, pos, val;
+        val = this.input.value;
+        pos = val.lastIndexOf('.');
+        if (pos === -1) {
+          env = win;
+        } else {
+          this.env = val.substring(0, pos);
+          env = eval(this.env);
+        }
+        val = val.substring(pos + 1, val.length);
+        return this.appendInSelect(this.searchAttribute(val, env));
+      };
+
       Webug.prototype.errListener = function(error) {
         var msg;
         return msg = ["Error:", "filename: " + error.filename, "lineno: " + error.lineno, "message: " + error.message, "type: " + error.type];
+      };
+
+      Webug.prototype.scrollBottom = function() {
+        return this.container.scrollTop = this.container.scrollHeight;
       };
 
       function Webug() {
@@ -123,6 +203,7 @@
         this.msg = '';
         this.body = getBody();
         this.stack = new Stack();
+        this.env = '';
         this.init();
       }
 
@@ -138,27 +219,50 @@
         this.input = dom("#webug-input");
         this.content = dom('#webug-content');
         this.container = dom('#webug-container');
-        bind(this.btn, 'click', (function(_this) {
+        this.select = dom('#webug-select');
+        bind(this.btn, CLICK, (function(_this) {
           return function() {
             return _this.clear();
           };
         })(this));
-        bind(this.input, 'keydown', (function(_this) {
+        bind(this.input, KEYDOWN, (function(_this) {
           return function(e) {
             var data;
             if (e.keyCode === 13) {
               _this.msg = _this.input.value;
               _this.stack.push(_this.msg);
-              data = render(_this.msg);
-              return append(data[0], data[1]);
+              data = _this.render(_this.msg);
+              return _this.append(data[0], data[1]);
             } else if (e.keyCode === 38) {
-              return _this.input.value = _this.stack.up();
+              return _this.select.focus();
             } else if (e.keyCode === 40) {
-              return _this.input.value = _this.stack.down();
+              return _this.select.focus();
             }
           };
         })(this));
-        bind(this.body, 'keydown', (function(_this) {
+        bind(this.input, INPUT, (function(_this) {
+          return function(e) {
+            return _this.inputListner(e);
+          };
+        })(this));
+        bind(this.select, KEYDOWN, (function(_this) {
+          return function(e) {
+            if (e.keyCode === 13) {
+              _this.input.value = _this.env + '.' + _this.select.value;
+              return _this.input.focus();
+            } else if (e.keyCode === 37) {
+              _this.input.focus();
+              return e.preventDefault();
+            }
+          };
+        })(this));
+        bind(this.select, CLICK, (function(_this) {
+          return function(e) {
+            _this.input.value = _this.select.value;
+            return _this.input.focus();
+          };
+        })(this));
+        bind(this.body, KEYDOWN, (function(_this) {
           return function(e) {
             if (e.keyCode === 88 && e.ctrlKey) {
               if (_this.isHide) {
@@ -169,16 +273,19 @@
             }
           };
         })(this));
-        bind(win, 'error', (function(_this) {
+        bind(win, ERROR, (function(_this) {
           return function(e) {
             return _this.errListener(e);
           };
         })(this));
-        win.console.log = function(val) {
-          var data;
-          data = render(val, true);
-          append(data[0], data[1]);
-        };
+        win.console.log = (function(_this) {
+          return function(val) {
+            var data;
+            data = _this.render(val, true);
+            _this.append(data[0], data[1]);
+            return UNDEFINED;
+          };
+        })(this);
         this.isInit = true;
         return this;
       };
