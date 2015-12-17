@@ -3,85 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>webug.js</title>
-    <style>
-        .webug-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 200px;
-            font-color: #000;
-            font-size: 16px;
-            margin: 5px;
-            padding: 5px;
-            border-top: 3px solid #eeefee;
-        }
-        .webug-command {
-            padding: 5px 0;
-        }
-        .webug-command::before {
-            content: ">";
-            color: rgb(53, 131, 252);
-            font-weight: bold;
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .webug-information {
-            margin: 0;
-            padding: 0;
-        }
-        .webug-echo {
-            font-size: 16px;
-            padding: 5px 0;
-            border-bottom: 1px solid #eeefee;
-            list-style: none;
-        }
-        .webug-echo::before {
-            content: ">";
-            color: rgb(133, 149, 173);
-            font-weight: bold;
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .webug-true {
-            font-color: #066;
-            border-bottom: 1px solid #eeefee;
-            padding: 5px 10px;
-            list-style: none;
-        }
-        .webug-error {
-            color: #E81D20;
-            border-bottom: 1px solid #eeefee;
-            padding: 5px 10px;
-            list-style: none;
-        }
-        .webug-error::before {
-            content: "error: ";
-        }
-        .webug-edit {
-            width: 80%;
-            font-size: 16px;
-            border: none;
-            outline: none;
-         }
-        .webug-clear {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            padding: 2px 5px;
-        }
-        .webug-tips {
-            position: absolute;
-            right: 80px;
-            top: 10px;
-            border: 1px solid #000;
-        }
-        .webug-tips-li {
-            border-bottom: 1px solid #006666;
-        }
-    </style>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="webug.css">
 </head>
 <body>
+
+    <div class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px">
+        <div class="btn-group pull-right" role="group" aria-label="...">
+            <button id="webug-clear" type="button" class="btn btn-info">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+            </button>
+            <button id="webug-close" type="button" class="btn btn-danger">
+                <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button>
+            </button>
+        </div>
+        <br><br>
+        <ul id="webug-ul" class="list-group" style="margin: 10px 0">
+
+        </ul>
+        <div class="input-group input-group-bg">
+            <span class="input-group-addon ">></span>
+            <input id="webug-input" type="text" class="form-control" placeholder="Username" aria-describedby="sizing-addon3">
+        </div>
+        <div class="col-xs-2">
+        <select id="webug-select" class="form-control">
+
+        </select>
+        </div>
+    </div>
+    <!--
     <div class="webug-container">
         <ul class="webug-information">
             <li class="webug-echo">test</li>
@@ -94,6 +44,8 @@
         <select class="webug-tips">
         </select>
         <button class="webug-clear">Clear</button>
-    </div>
+    </div>-->
+    <script src="jquery-1.11.3.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -2,7 +2,33 @@
 (function() {
   (function(win, doc) {
     "user strict";
-    var Stack, Webug, webug;
+    var Stack, Webug;
+    (function() {
+      var bt, css, jq;
+      css = doc.createElement('link');
+      jq = doc.createElement('script');
+      bt = doc.createElement('script');
+      css.setAttribute('rel', 'styleSheet');
+      css.setAttribute('href', 'bootstrap/css/bootstrap.min.css');
+      jq.src = 'jquery-1.11.3.min.js';
+      jq.onload = jq.readyreadystatechange = function() {
+        if (!jq.readyState || /loaded|complete/.test(jq.readyState)) {
+          console.log('jq ok');
+          return doc.body.appendChild(bt);
+        }
+      };
+      bt.src = 'bootstrap/js/bootstrap.min.js';
+      bt.onload = bt.readyreadystatechange = function() {
+        var webug;
+        if (!bt.readyState || /loaded|complete/.test(bt.readyState)) {
+          console.log('load ok');
+          bt.onload = bt.readystatechange = null;
+          return webug = new Webug;
+        }
+      };
+      doc.body.appendChild(css);
+      return doc.body.appendChild(jq);
+    })();
     Stack = (function() {
       function Stack() {
         this.data = [];
@@ -33,12 +59,10 @@
       return Stack;
 
     })();
-    Webug = (function() {
-      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, STYLE, TRUE, UNDEFINED, bind, dom, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, unbind;
+    return Webug = (function() {
+      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, TRUE, UNDEFINED, bind, createEle, createLiEle, createOptionEle, createSpanEle, dom, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, setEleClass, setEleContent, unbind;
 
-      STYLE = '.webug-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; font-color: #000; font-size: 16px; margin: 5px; padding: 5px; border-top: 3px solid #eeefee; overflow-y: scroll; } .webug-command { padding: 5px 0; } .webug-command::before { content: ">"; color: rgb(53, 131, 252); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-information { margin: 0; padding: 0; } .webug-echo { font-size: 16px; padding: 5px 0; border-bottom: 1px solid #eeefee; list-style: none; } .webug-echo::before { content: ">"; color: rgb(133, 149, 173); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-true { font-color: #066; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error { color: #E81D20; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error::before { content: "error: "; } .webug-edit { width: 80%; font-size: 16px; border: none; outline: none; } .webug-tips { position: fixed; right: 80px; bottom: 190px; border: 1px solid #000; } .webug-clear { position: fixed; bottom: 10px; right: 10px; padding: 2px 5px; }';
-
-      HTML = '<div id="webug-container" class="webug-container"> <ul id="webug-content" class="webug-information"> </ul> <div class="webug-command"> <input id="webug-input" class="webug-edit"/> </div> <select id="webug-select" class="webug-tips"> </select> <button id="webug-btn-clear" class="webug-clear">Clear</button> </div>';
+      HTML = '<div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;height=200px"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <ul id="webug-ul" class="list-group" style="margin: 10px 0"> </ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> <div class="col-xs-2"> <select id="webug-select" class="form-control"> </select> </div> </div>';
 
       UNDEFINED = void 0;
 
@@ -113,12 +137,12 @@
       getPropertyName = function(obj, iterateSelfBool, iteratePrototypeBool, includePropCb) {
         var i, len, prop, props, ref;
         props = [];
-        while ((!!obj) === true) {
+        while (!!obj === true) {
           if (iterateSelfBool === true) {
             ref = Object.getOwnPropertyNames(obj);
             for (i = 0, len = ref.length; i < len; i++) {
               prop = ref[i];
-              if (prop.indexOf(prop === -1 && includePropCb(obj, prop))) {
+              if (props.indexOf(prop === -1 && includePropCb(obj, prop))) {
                 props.push(prop);
               }
             }
@@ -132,20 +156,65 @@
         return props;
       };
 
+      setEleClass = function(ele, cl) {
+        return ele.setAttribute('class', cl);
+      };
+
+      setEleContent = function(ele, val) {
+        return ele.innerHTML = val;
+      };
+
+      createEle = function(na) {
+        return doc.createElement(na);
+      };
+
+      createLiEle = function(val, nor) {
+        var cl, li, sp1, sp2;
+        li = createEle('li');
+        li.innerHTML = '<span class="glyphicon glyphicon-menu-right"></span>';
+        cl = 'list-group-item ';
+        if (!nor) {
+          cl += 'text-danger ';
+          li.innerHTML = '<span class="glyphicon glyphicon-remove"></span>';
+        }
+        setEleClass(li, cl);
+        sp1 = createSpanEle('');
+        sp2 = createSpanEle(val);
+        return li;
+      };
+
+      createOptionEle = function(val) {
+        var option;
+        option = createEle('option');
+        return setEleContent(option, val);
+      };
+
+      createSpanEle = function(val) {
+        var span;
+        span = createEle('span');
+        if (val === '') {
+          return setEleClass(span, 'glyphicon glyphicon-menu-right');
+        } else {
+          setEleClass(span, 'glyphicon glyphicon-remove');
+          setEleContent(span, val);
+          return span;
+        }
+      };
+
       Webug.prototype.render = function(msg, console) {
         var data, error, error1;
         if (msg === '') {
-          return [TRUE, ''];
+          return [true, ''];
         } else {
           if (console == null) {
-            this.append('echo', msg);
+            this.append(true, msg);
           }
           try {
             data = eval.call(win, msg);
-            return [TRUE, isObejct(data) ? data.toString() : data];
+            return [true, isObejct(data) ? data.toString() : data];
           } catch (error1) {
             error = error1;
-            return [ERROR, error];
+            return [false, error];
           }
         }
       };
@@ -154,15 +223,13 @@
 
       Webug.prototype.append = function(trueOrErr, value) {
         var li;
-        li = doc.createElement('li');
-        li.setAttribute('class', 'webug-' + trueOrErr);
-        li.innerHTML = value;
-        this.content.appendChild(li);
+        li = createLiEle(value, trueOrErr);
+        this.ul.appendChild(li);
         return this.scrollBottom();
       };
 
       Webug.prototype.clear = function() {
-        return this.content.innerHTML = '';
+        return this.ul.innerHTML = '';
       };
 
       Webug.prototype.show = function() {
@@ -245,21 +312,19 @@
       }
 
       Webug.prototype.init = function() {
-        var css, div;
+        var div;
         this.isHide = false;
         this.env = '';
-        css = doc.createElement('style');
-        css.innerHTML = STYLE;
         div = doc.createElement('div');
         div.innerHTML = HTML;
-        this.body.appendChild(css);
         this.body.appendChild(div);
-        this.btn = dom("#webug-btn-clear");
-        this.input = dom("#webug-input");
-        this.content = dom('#webug-content');
         this.container = dom('#webug-container');
+        this.btn_clear = dom('#webug-clear');
+        this.btn_close = dom('#webug-close');
+        this.input = dom('#webug-input');
+        this.ul = dom('#webug-ul');
         this.select = dom('#webug-select');
-        bind(this.btn, CLICK, (function(_this) {
+        bind(this.btn_clear, CLICK, (function(_this) {
           return function() {
             return _this.clear();
           };
@@ -334,7 +399,6 @@
       return Webug;
 
     })();
-    return webug = new Webug();
   })(window, document);
 
 }).call(this);
