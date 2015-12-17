@@ -54,8 +54,8 @@
   class Webug
     # 模板HTML
     HTML = '
-          <div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;height=200px">
-                  <div class="btn-group pull-right" role="group" aria-label="...">
+          <div id="webug-container" class="panel panel-default" style="height:300px;overflow: scroll;position:fixed;bottom:0;left:0;padding-top:10px;margin:0;">
+              <div class="btn-group pull-right" role="group" aria-label="...">
                       <button id="webug-clear" type="button" class="btn btn-info">
                           <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
                       </button>
@@ -63,14 +63,16 @@
                           <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button>
                       </button>
                   </div>
-                  <ul id="webug-ul" class="list-group" style="margin: 10px 0">
+                <div style="margin: 40px 0 10px">
+                  <ul id="webug-ul" class="list-group" style="">
                   </ul>
                   <div class="input-group input-group-bg">
                       <span class="input-group-addon ">></span>
                       <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3">
                   </div>
-                  <div class="col-xs-2">
-                  <select id="webug-select" class="form-control">
+                </div>
+                  <div class="col-xs-2" style="position:fixed;bottom:20px;left:30px">
+                  <select id="webug-select" class="form-control" >
                   </select>
                   </div>
           </div>
@@ -84,16 +86,13 @@
     INPUT = 'input'
     CHANGE = 'change'
 
-    dom = (ele) ->
-      doc.querySelector ele
-
     # 绑定事件
     bind = (ele, event, callback) ->
-      ele.addEventListener event,callback, no
+      ele.on event, callback
 
     # 解除绑定事件
     unbind = (ele, event, callback) ->
-      ele.removeEventListener event, callback, no
+      ele.on event, callback
 
     isNull = (val) -> val is null
 
@@ -105,7 +104,7 @@
     isObejct = (val) ->
       typeof val is "object" and not isArray(val) and not isNull(val)
 
-    getBody = -> doc.body or dom("body") or dom("html")
+    getBody = -> doc.body or $("body") or $("html")
 
     # 获取对象的属性名字
     getAttrs = (obj) ->
@@ -162,13 +161,12 @@
       if !nor
           cl += 'text-danger '
           li.innerHTML = '<span class="glyphicon glyphicon-remove"></span>'
-
+      li.innerHTML += val
       setEleClass li, cl
-      sp1 = createSpanEle ''
-      sp2 = createSpanEle val
+      #sp1 = createSpanEle ''
+      #sp2 = createSpanEle val
       #li.appendChild sp1
       #li.appendChild sp2
-
       li
 
     # 创建 option 节点并赋予内容
@@ -276,6 +274,8 @@
     scrollBottom: ->
       @container.scrollTop = @container.scrollHeight
 
+    selectPos: ->
+      @select
     constructor: ->
       # 是否初始化以及隐藏
       @isInit = no
@@ -301,12 +301,13 @@
 
       @body.appendChild div
 
-      @container = dom '#webug-container'
-      @btn_clear = dom '#webug-clear'
-      @btn_close = dom '#webug-close'
-      @input = dom '#webug-input'
-      @ul = dom '#webug-ul'
-      @select = dom '#webug-select'
+      @container = $ '#webug-container'
+      @btn_clear = $ '#webug-clear'
+      @btn_close = $ '#webug-close'
+      @input = $ '#webug-input'
+      @ul = $ '#webug-ul'
+      @select = $ '#webug-select'
+
 
       # 绑定事件
       bind @btn_clear, CLICK, =>

@@ -60,9 +60,9 @@
 
     })();
     return Webug = (function() {
-      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, TRUE, UNDEFINED, bind, createEle, createLiEle, createOptionEle, createSpanEle, dom, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, setEleClass, setEleContent, unbind;
+      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, TRUE, UNDEFINED, bind, createEle, createLiEle, createOptionEle, createSpanEle, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, setEleClass, setEleContent, unbind;
 
-      HTML = '<div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;height=200px"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <ul id="webug-ul" class="list-group" style="margin: 10px 0"> </ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> <div class="col-xs-2"> <select id="webug-select" class="form-control"> </select> </div> </div>';
+      HTML = '<div id="webug-container" class="panel panel-default" style="height:300px;overflow: scroll;position:fixed;bottom:0;left:0;padding-top:10px;margin:0;"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <div style="margin: 40px 0 10px"> <ul id="webug-ul" class="list-group" style=""> </ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> </div> <div class="col-xs-2" style="position:fixed;bottom:20px;left:30px"> <select id="webug-select" class="form-control" > </select> </div> </div>';
 
       UNDEFINED = void 0;
 
@@ -78,16 +78,12 @@
 
       CHANGE = 'change';
 
-      dom = function(ele) {
-        return doc.querySelector(ele);
-      };
-
       bind = function(ele, event, callback) {
-        return ele.addEventListener(event, callback, false);
+        return ele.on(event, callback);
       };
 
       unbind = function(ele, event, callback) {
-        return ele.removeEventListener(event, callback, false);
+        return ele.on(event, callback);
       };
 
       isNull = function(val) {
@@ -105,7 +101,7 @@
       };
 
       getBody = function() {
-        return doc.body || dom("body") || dom("html");
+        return doc.body || $("body") || $("html");
       };
 
       getAttrs = function(obj) {
@@ -169,7 +165,7 @@
       };
 
       createLiEle = function(val, nor) {
-        var cl, li, sp1, sp2;
+        var cl, li;
         li = createEle('li');
         li.innerHTML = '<span class="glyphicon glyphicon-menu-right"></span>';
         cl = 'list-group-item ';
@@ -177,9 +173,8 @@
           cl += 'text-danger ';
           li.innerHTML = '<span class="glyphicon glyphicon-remove"></span>';
         }
+        li.innerHTML += val;
         setEleClass(li, cl);
-        sp1 = createSpanEle('');
-        sp2 = createSpanEle(val);
         return li;
       };
 
@@ -302,6 +297,10 @@
         return this.container.scrollTop = this.container.scrollHeight;
       };
 
+      Webug.prototype.selectPos = function() {
+        return this.select;
+      };
+
       function Webug() {
         this.isInit = false;
         this.msg = '';
@@ -318,12 +317,12 @@
         div = doc.createElement('div');
         div.innerHTML = HTML;
         this.body.appendChild(div);
-        this.container = dom('#webug-container');
-        this.btn_clear = dom('#webug-clear');
-        this.btn_close = dom('#webug-close');
-        this.input = dom('#webug-input');
-        this.ul = dom('#webug-ul');
-        this.select = dom('#webug-select');
+        this.container = $('#webug-container');
+        this.btn_clear = $('#webug-clear');
+        this.btn_close = $('#webug-close');
+        this.input = $('#webug-input');
+        this.ul = $('#webug-ul');
+        this.select = $('#webug-select');
         bind(this.btn_clear, CLICK, (function(_this) {
           return function() {
             return _this.clear();
