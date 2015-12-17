@@ -162,9 +162,29 @@
         console.log(obj)
         attr
 
-    # 比较两个字符串，将后者字符串倒匹配，并添加到前者，重复字符串不添加
-    # 如: resplaceString('xxx.abc', 'abcd') 返回 xxx.abcd
-    resplaceString = (a, b) ->
+    enumerable = (obj, prop) ->
+      obj.propertyIsEnumerable prop
+
+    notEnumerable = (obj, prop) ->
+      !obj.propertyIsEnumerable prop
+
+    enumerableAndNotEnumerable = () ->
+      yes
+
+    # 获取对象属性名，不要利用for ... in，因为这样不可枚举的属性无法抓取
+    getPropertyName = (obj, iterateSelfBool, iteratePrototypeBool, includePropCb) ->
+      props = [];
+      while ( !!obj ) is yes
+        if iterateSelfBool is yes
+          for prop in Object.getOwnPropertyNames obj
+            if prop.indexOf prop is -1 and includePropCb obj, prop
+              props.push prop
+        if iteratePrototypeBool is no
+          break
+        iterateSelfBool = yes
+        obj = Object.getPrototypeOf obj
+
+      props
 
     # 数据处理
     render:  (msg, console) ->
@@ -209,7 +229,7 @@
     # 搜索当前 env 下符合 val 开头的属性
     searchAttribute: (val, env) ->
       array = []
-      attrs = getAttrs(env)
+      attrs = getPropertyName env, yes, yes, enumerableAndNotEnumerable()
       # console.log(attrs)
       for key in attrs
         if key.indexOf(val) is 0 then array.push key

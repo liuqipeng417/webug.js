@@ -34,7 +34,7 @@
 
     })();
     Webug = (function() {
-      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, STYLE, TRUE, UNDEFINED, bind, dom, getAttrs, getBody, isArray, isNull, isNumber, isObejct, resplaceString, unbind;
+      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, STYLE, TRUE, UNDEFINED, bind, dom, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, unbind;
 
       STYLE = '.webug-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; font-color: #000; font-size: 16px; margin: 5px; padding: 5px; border-top: 3px solid #eeefee; overflow-y: scroll; } .webug-command { padding: 5px 0; } .webug-command::before { content: ">"; color: rgb(53, 131, 252); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-information { margin: 0; padding: 0; } .webug-echo { font-size: 16px; padding: 5px 0; border-bottom: 1px solid #eeefee; list-style: none; } .webug-echo::before { content: ">"; color: rgb(133, 149, 173); font-weight: bold; display: inline-block; margin-right: 5px; } .webug-true { font-color: #066; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error { color: #E81D20; border-bottom: 1px solid #eeefee; padding: 5px 12px; list-style: none; } .webug-error::before { content: "error: "; } .webug-edit { width: 80%; font-size: 16px; border: none; outline: none; } .webug-tips { position: fixed; right: 80px; bottom: 190px; border: 1px solid #000; } .webug-clear { position: fixed; bottom: 10px; right: 10px; padding: 2px 5px; }';
 
@@ -98,7 +98,39 @@
         }
       };
 
-      resplaceString = function(a, b) {};
+      enumerable = function(obj, prop) {
+        return obj.propertyIsEnumerable(prop);
+      };
+
+      notEnumerable = function(obj, prop) {
+        return !obj.propertyIsEnumerable(prop);
+      };
+
+      enumerableAndNotEnumerable = function() {
+        return true;
+      };
+
+      getPropertyName = function(obj, iterateSelfBool, iteratePrototypeBool, includePropCb) {
+        var i, len, prop, props, ref;
+        props = [];
+        while ((!!obj) === true) {
+          if (iterateSelfBool === true) {
+            ref = Object.getOwnPropertyNames(obj);
+            for (i = 0, len = ref.length; i < len; i++) {
+              prop = ref[i];
+              if (prop.indexOf(prop === -1 && includePropCb(obj, prop))) {
+                props.push(prop);
+              }
+            }
+          }
+          if (iteratePrototypeBool === false) {
+            break;
+          }
+          iterateSelfBool = true;
+          obj = Object.getPrototypeOf(obj);
+        }
+        return props;
+      };
 
       Webug.prototype.render = function(msg, console) {
         var data, error, error1;
@@ -148,7 +180,7 @@
       Webug.prototype.searchAttribute = function(val, env) {
         var array, attrs, i, key, len;
         array = [];
-        attrs = getAttrs(env);
+        attrs = getPropertyName(env, true, true, enumerableAndNotEnumerable());
         for (i = 0, len = attrs.length; i < len; i++) {
           key = attrs[i];
           if (key.indexOf(val) === 0) {
