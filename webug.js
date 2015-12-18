@@ -10,7 +10,7 @@
       bt = doc.createElement('script');
       css.setAttribute('rel', 'styleSheet');
       css.setAttribute('href', 'bootstrap/css/bootstrap.min.css');
-      jq.src = 'jquery-1.11.3.min.js';
+      jq.src = 'jquery.min.js';
       jq.onload = jq.readyreadystatechange = function() {
         if (!jq.readyState || /loaded|complete/.test(jq.readyState)) {
           console.log('jq ok');
@@ -60,26 +60,34 @@
 
     })();
     return Webug = (function() {
-      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, TRUE, UNDEFINED, bind, createLiEle, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, unbind;
+      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, MOUSEDOWN, MOUSEMOVE, MOUSEUP, TRUE, UNDEFINED, bind, createLiEle, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isFunction, isNull, isNumber, isObejct, notEnumerable, unbind;
 
-      HTML = '<div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <ul id="webug-ul" class="list-group" style="height:200px;overflow-y:scroll;margin: 40px 0 10px"> </ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> <select id="webug-select" class="form-control" size="" style="width:200px;position:fixed;bottom:40px;left:50px;display:none"></select> </div>';
+      HTML = '<div id="webug-up" class="progress" style="margin:0;height:8px"> <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 100%;"> </div> </div> <div id="webug-container" class="panel panel-default" style="padding-top:5px;margin:0;"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info btn-sm"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger btn-sm"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <ul id="webug-ul" class="list-group" style="height:150px;overflow-y:scroll;margin: 40px 0 10px"></ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> <select id="webug-select" class="form-control" size="" style="width:200px;position:fixed;bottom:40px;left:50px;display:none"></select> </div>';
 
       UNDEFINED = void 0;
 
-      CLICK = 'click';
+      CLICK = 'click ';
 
-      KEYDOWN = 'keydown';
+      KEYDOWN = 'keydown ';
 
-      TRUE = 'true';
+      TRUE = 'true ';
 
-      ERROR = 'error';
+      ERROR = 'error ';
 
-      INPUT = 'input';
+      INPUT = 'input ';
 
-      CHANGE = 'change';
+      CHANGE = 'change ';
+
+      MOUSEUP = 'mouseup ';
+
+      MOUSEDOWN = 'mousedown ';
+
+      MOUSEMOVE = 'mousemove ';
 
       bind = function(ele, event, callback) {
-        return $(ele).on(event, callback);
+        return $(ele).on(event, function(e) {
+          return callback(e);
+        });
       };
 
       unbind = function(ele, event, callback) {};
@@ -95,11 +103,15 @@
       };
 
       isObejct = function(val) {
-        return typeof val === "object" && !isArray(val) && !isNull(val);
+        return typeof val === 'object' && !isFunction(val) && !isNull(val);
+      };
+
+      isFunction = function(val) {
+        return typeof val === 'function';
       };
 
       getBody = function() {
-        return doc.body || $("body");
+        return $('body');
       };
 
       getAttrs = function(obj) {
@@ -152,7 +164,7 @@
 
       createLiEle = function(val, nor) {
         var cl, li, sp;
-        li = $('<li>');
+        li = $('<li style="padding:5px 15px"></li>');
         sp = '<span class="glyphicon glyphicon-menu-right"></span><span style="margin-left:16px">';
         cl = 'list-group-item ';
         if (nor === false) {
@@ -177,7 +189,7 @@
           }
           try {
             data = eval.call(win, msg);
-            return ['result', isObejct(data) ? !!data.toString ? data.toSource() : data.valueOf() : data];
+            return ['result', isObejct(data) ? JSON.stringify(data) : isFunction(data) ? !!data.toString ? data.toString() : !!data.valueOf ? data.valueOf() : void 0 : data];
           } catch (error1) {
             error = error1;
             return [false, error];
@@ -276,10 +288,18 @@
         }
       };
 
-      Webug.prototype.errListener = function(error) {
-        var msg;
-        return msg = ["Error:", "filename: " + error.filename, "lineno: " + error.lineno, "message: " + error.message, "type: " + error.type];
-      };
+
+      /* 绑定window，捕捉js报错信息
+      errListener: (error) ->
+         * 只输出有用的错误信息
+        msg = [
+          "Error:"
+          "filename: #{error.filename}"
+          "lineno: #{error.lineno}"
+          "message: #{error.message}"
+          "type: #{error.type}"
+        ]
+       */
 
       Webug.prototype.scrollBottom = function() {
         return this.ul.scrollTop(this.ul.prop('scrollHeight'));
@@ -303,16 +323,41 @@
         var div;
         this.isHide = false;
         this.env = '';
-        div = doc.createElement('div');
-        div.innerHTML = HTML;
-        this.body.appendChild(div);
+        div = $('<div style="position:fixed;bottom:0;left:0;"></div>');
+        div.html(HTML);
+        this.body.append(div);
         this.container = $('#webug-container');
         this.btn_clear = $('#webug-clear');
         this.btn_close = $('#webug-close');
         this.input = $('#webug-input');
         this.ul = $('#webug-ul');
         this.select = $('#webug-select');
-        console.log(this.ul);
+        this.div_up = $('#webug-up');
+        this.is_Mouse_Down = false;
+        bind(this.div_up, MOUSEDOWN, (function(_this) {
+          return function(e) {
+            _this.src_pos_y = e.pageY;
+            return _this.is_Mouse_Down = true;
+          };
+        })(this));
+        bind(doc, CLICK + MOUSEUP, (function(_this) {
+          return function(e) {
+            if (_this.is_Mouse_Down === true) {
+              return _this.is_Mouse_Down = false;
+            }
+          };
+        })(this));
+        bind(doc, MOUSEMOVE, (function(_this) {
+          return function(e) {
+            var move_Y;
+            if (_this.is_Mouse_Down === true) {
+              _this.dest_pos_y = e.pageY;
+              move_Y = _this.src_pos_y - _this.dest_pos_y;
+              _this.src_pos_y = _this.dest_pos_y;
+              return _this.ul.height(_this.ul.height() + move_Y);
+            }
+          };
+        })(this));
         bind(this.btn_clear, CLICK, (function(_this) {
           return function() {
             return _this.clear();

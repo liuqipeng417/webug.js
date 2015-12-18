@@ -1,31 +1,27 @@
-
-# webug.js 0.0.1
-
 ((win, doc) ->
-
   "user strict"
 
   # 同步加载相关资源
   (() ->
-      css = doc.createElement 'link'
-      jq = doc.createElement 'script'
-      bt = doc.createElement 'script'
-      css.setAttribute 'rel', 'styleSheet'
-      css.setAttribute 'href', 'bootstrap/css/bootstrap.min.css'
-      jq.src = 'jquery-1.11.3.min.js'
-      jq.onload = jq.readyreadystatechange = () ->
-          if !jq.readyState || /loaded|complete/.test(jq.readyState)
-            console.log('jq ok');
-            doc.body.appendChild(bt)
-      bt.src = 'bootstrap/js/bootstrap.min.js'
-      bt.onload = bt.readyreadystatechange = () ->
-        if !bt.readyState || /loaded|complete/.test(bt.readyState)
-          console.log('load ok');
-          bt.onload = bt.readystatechange = null
-          webug = new Webug
-      doc.body.appendChild(css)
-      doc.body.appendChild(jq)
-  )()
+    css = doc.createElement 'link'
+    jq = doc.createElement 'script'
+    bt = doc.createElement 'script'
+    css.setAttribute 'rel', 'styleSheet'
+    css.setAttribute 'href', 'bootstrap/css/bootstrap.min.css'
+    jq.src = 'jquery.min.js'
+    jq.onload = jq.readyreadystatechange = () ->
+      if !jq.readyState || /loaded|complete/.test jq.readyState
+        console.log 'jq ok'
+        doc.body.appendChild(bt)
+    bt.src = 'bootstrap/js/bootstrap.min.js'
+    bt.onload = bt.readyreadystatechange = () ->
+      if !bt.readyState || /loaded|complete/.test bt.readyState
+        console.log 'load ok'
+        bt.onload = bt.readystatechange = null
+
+        webug = new Webug
+    doc.body.appendChild css
+    doc.body.appendChild jq)()
 
 
   # 暂存执行语句
@@ -54,36 +50,45 @@
   class Webug
     # 模板HTML
     HTML = '
-          <div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;">
-              <div class="btn-group pull-right" role="group" aria-label="...">
-                      <button id="webug-clear" type="button" class="btn btn-info">
-                          <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-                      </button>
-                      <button id="webug-close" type="button" class="btn btn-danger">
-                          <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button>
-                      </button>
-                  </div>
-                  <ul id="webug-ul" class="list-group" style="height:200px;overflow-y:scroll;margin: 40px 0 10px">
-                  </ul>
-                  <div class="input-group input-group-bg">
-                      <span class="input-group-addon ">></span>
-                      <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3">
-                  </div>
-                  <select id="webug-select" class="form-control" size="" style="width:200px;position:fixed;bottom:40px;left:50px;display:none"></select>
+          <div id="webug-up" class="progress" style="margin:0;height:8px">
+            <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">
+            </div>
+          </div>
+          <div id="webug-container" class="panel panel-default" style="padding-top:5px;margin:0;">
+            <div class="btn-group pull-right" role="group" aria-label="...">
+              <button id="webug-clear" type="button" class="btn btn-info btn-sm">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+              </button>
+              <button id="webug-close" type="button" class="btn btn-danger btn-sm">
+                <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button>
+              </button>
+            </div>
+            <ul id="webug-ul" class="list-group" style="height:150px;overflow-y:scroll;margin: 40px 0 10px"></ul>
+            <div class="input-group input-group-bg">
+              <span class="input-group-addon ">></span>
+              <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3">
+            </div>
+            <select id="webug-select" class="form-control" size="" style="width:200px;position:fixed;bottom:40px;left:50px;display:none"></select>
           </div>
      '
 
     UNDEFINED = undefined
-    CLICK = 'click'
-    KEYDOWN = 'keydown'
-    TRUE = 'true'
-    ERROR = 'error'
-    INPUT = 'input'
-    CHANGE = 'change'
+    CLICK = 'click '
+    KEYDOWN = 'keydown '
+    TRUE = 'true '
+    ERROR = 'error '
+    INPUT = 'input '
+    CHANGE = 'change '
+    MOUSEUP = 'mouseup '
+    MOUSEDOWN = 'mousedown '
+    MOUSEMOVE = 'mousemove '
 
     # 绑定事件
     bind = (ele, event, callback) ->
-      $(ele).on event, callback
+      $(ele).on event, (e) ->
+        callback(e);
+    # e.preventDefault()
+
 
     # 解除绑定事件
     unbind = (ele, event, callback) ->
@@ -94,12 +99,15 @@
     isArray = Array.isArray
 
     isNumber = (val) ->
-        !isNaN(val)
+      !isNaN(val)
 
     isObejct = (val) ->
-      typeof val is "object" and not isArray(val) and not isNull(val)
+      typeof val is 'object' and not isFunction(val) and not isNull(val)
 
-    getBody = -> doc.body or $ "body"
+    isFunction = (val) ->
+      typeof val is 'function'
+
+    getBody = -> $ 'body'
 
     # 获取对象的属性名字
     getAttrs = (obj) ->
@@ -138,7 +146,7 @@
 
     # 创建 li 节点并赋予内容
     createLiEle = (val, nor) ->
-      li = $ '<li>'
+      li = $ '<li style="padding:5px 15px"></li>'
       sp = '<span class="glyphicon glyphicon-menu-right"></span><span style="margin-left:16px">'
       cl = 'list-group-item '
       if nor is no
@@ -152,7 +160,7 @@
       li
 
     # 数据处理
-    render:  (msg, console) ->
+    render: (msg, console) ->
       if msg is ''
         [yes, '']
       else
@@ -164,11 +172,14 @@
           data = eval.call win, msg
           ['result',
             if isObejct data
+              JSON.stringify data
+            else if isFunction data
               if !!data.toString
-                data.toSource()
-              else
+                data.toString()
+              else if !!data.valueOf
                 data.valueOf()
-            else data
+            else
+              data
           ]
         catch error
           [no, error]
@@ -234,14 +245,14 @@
           # 因为字符串中存在字符'.'，导致又把 @env 设置了环境，导致清除失败
           @env = ''
         else
-          tmp= val.substring 0, pos
+          tmp = val.substring 0, pos
           @env = tmp + '.'
           env = eval tmp
-          # alert JSON.stringify env
+        # alert JSON.stringify env
         val = val.substring pos + 1, val.length
         @appendInSelect @searchAttribute val, env
 
-    # 绑定window，捕捉js报错信息
+    ### 绑定window，捕捉js报错信息
     errListener: (error) ->
       # 只输出有用的错误信息
       msg = [
@@ -252,6 +263,8 @@
         "type: #{error.type}"
       ]
 
+    ###
+
     # 自动滚到至底部
     scrollBottom: ->
       @ul.scrollTop @ul.prop 'scrollHeight'
@@ -259,7 +272,7 @@
     selectPos: ->
       @select
     constructor: ->
-      # 是否初始化以及隐藏
+    # 是否初始化以及隐藏
       @isInit = no
       @isHide = no
       @msg = ''
@@ -278,10 +291,10 @@
       #  输入语句当前环境, 默认 window
       @env = ''
 
-      div = doc.createElement 'div'
-      div.innerHTML = HTML
+      div = $ '<div style="position:fixed;bottom:0;left:0;"></div>'
+      div.html HTML
 
-      @body.appendChild div
+      @body.append div
 
       @container = $ '#webug-container'
       @btn_clear = $ '#webug-clear'
@@ -289,16 +302,40 @@
       @input = $ '#webug-input'
       @ul = $ '#webug-ul'
       @select = $ '#webug-select'
+      @div_up = $ '#webug-up'
 
-      console.log @ul
+      # console.log @ul
       # console.log @btn_clear
       # 绑定事件
+
+      # 拖拽
+      @is_Mouse_Down = no
+      bind @div_up, MOUSEDOWN, (e) =>
+        @src_pos_y = e.pageY;
+        #console.log @src_pos_y
+        @is_Mouse_Down = yes
+
+      bind doc, CLICK + MOUSEUP, (e) =>
+        if @is_Mouse_Down is yes
+          @is_Mouse_Down = no
+          #console.log ok
+
+      bind doc, MOUSEMOVE, (e) =>
+        if @is_Mouse_Down is yes
+          @dest_pos_y = e.pageY
+          move_Y = @src_pos_y - @dest_pos_y
+          #console.log @ul.height() + move_Y
+          @src_pos_y = @dest_pos_y
+          @ul.height @ul.height() + move_Y
+
+      # 按钮
       bind @btn_clear, CLICK, =>
         @clear()
 
       bind @btn_close, CLICK, =>
         @hide()
 
+      # 输入框
       bind @input, KEYDOWN, (e) =>
         if e.keyCode is 13
           @msg = @input.val()
@@ -325,15 +362,15 @@
             e.preventDefault()
           else
             @select.focus()
-        # right
-        #else if e.keyCode is 39
+          # right
+          #else if e.keyCode is 39
           #@select.focus()
 
-      # 监听 input 输入变化（暂时不兼容ie）
       bind @input, INPUT, (e) =>
         # console.log(@searchAttribute @input.value, win)
         @inputListner(e)
 
+      # 提示框
       bind @select, KEYDOWN, (e) =>
         if e.keyCode is 13
           #alert(@env)
@@ -355,7 +392,7 @@
           if @isHide then @show() else @hide()
 
       # 绑定windown错误捕捉
-      #bind win, ERROR, (e) =>
+      # bind win, ERROR, (e) =>
       #  @errListener(e)
 
       # 劫持 console.log 方法
@@ -364,6 +401,6 @@
         data = @render val, yes
         @append(data[0], data[1])
         UNDEFINED
-
+      
     @
 ) window, document

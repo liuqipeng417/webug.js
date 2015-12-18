@@ -1,5 +1,9 @@
 {
   "name": "webug.js",
   "version": "0.0.1",
-  "author": "w_liuqipeng@wps.cn"
+  "author": "w_liuqipeng@wps.cn",
+  "dependencies": {
+    "gulp": "^3.9.0",
+    "gulp-uglify": "^1.5.1"
+  }
 }
