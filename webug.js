@@ -42,7 +42,7 @@
 
       Stack.prototype.up = function() {
         if (this.index !== 0) {
-          return this.data[--this.index];
+          return this.data[this.index--];
         } else {
           return this.data[this.index];
         }
@@ -50,7 +50,7 @@
 
       Stack.prototype.down = function() {
         if (this.index !== (this.data.length - 1)) {
-          return this.data[++this.index];
+          return this.data[this.index++];
         } else {
           return this.data[this.index];
         }
@@ -177,7 +177,7 @@
           }
           try {
             data = eval.call(win, msg);
-            return ['result', isObejct(data) ? data.toString() : data];
+            return ['result', isObejct(data) ? !!data.toString ? data.toSource() : data.valueOf() : data];
           } catch (error1) {
             error = error1;
             return [false, error];
@@ -187,9 +187,11 @@
 
       Webug.prototype.append = function(trueOrErr, value) {
         var li;
-        li = createLiEle(value, trueOrErr);
-        this.ul.append(li);
-        return this.scrollBottom();
+        if (value !== '') {
+          li = createLiEle(value, trueOrErr);
+          this.ul.append(li);
+          return this.scrollBottom();
+        }
       };
 
       Webug.prototype.clear = function() {
@@ -246,8 +248,12 @@
         return this.select.hide();
       };
 
+      Webug.prototype.clearInput = function() {
+        return this.input.val('');
+      };
+
       Webug.prototype.controlSelectPos = function() {
-        return this.select.css('left', (this.input.val().length * 10 + 50) + 'px');
+        return this.select.css('left', (this.input.val().length * 5 + 50) + 'px');
       };
 
       Webug.prototype.inputListner = function(e) {
@@ -325,11 +331,24 @@
               _this.stack.push(_this.msg);
               data = _this.render(_this.msg);
               _this.append(data[0], data[1]);
-              return _this.input.val('');
+              _this.clearInput();
+              return _this.clearSelect();
             } else if (e.keyCode === 38) {
-              return _this.select.focus();
+              if (_this.select.is(':hidden')) {
+                _this.input.val(_this.stack.up());
+                _this.input.prop('selectionStart', _this.input.val().length);
+                return e.preventDefault();
+              } else {
+                return _this.select.focus();
+              }
             } else if (e.keyCode === 40) {
-              return _this.select.focus();
+              if (_this.select.is(':hidden')) {
+                _this.input.val(_this.stack.down());
+                _this.input.prop('selectionStart', _this.input.val().length);
+                return e.preventDefault();
+              } else {
+                return _this.select.focus();
+              }
             }
           };
         })(this));

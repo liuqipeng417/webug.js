@@ -41,13 +41,13 @@
 
     up: () ->
       if @index isnt 0
-        @data[--@index]
+        @data[@index--]
       else
         @data[@index]
 
     down: () ->
       if @index isnt (@data.length - 1)
-        @data[++@index]
+        @data[@index++]
       else
         @data[@index]
 
@@ -162,14 +162,22 @@
         if not console? then @append yes, msg
         try
           data = eval.call win, msg
-          ['result', if isObejct data then data.toString() else data]
+          ['result',
+            if isObejct data
+              if !!data.toString
+                data.toSource()
+              else
+                data.valueOf()
+            else data
+          ]
         catch error
           [no, error]
 
     append: (trueOrErr, value) ->
-      li = createLiEle(value, trueOrErr)
-      @ul.append li
-      @scrollBottom()
+      if value isnt ''
+        li = createLiEle(value, trueOrErr)
+        @ul.append li
+        @scrollBottom()
 
     # 清除所有内容
     clear: ->
@@ -206,8 +214,11 @@
       @select.html ''
       @select.hide()
 
+    clearInput: ->
+      @input.val ''
+
     controlSelectPos: ->
-      @select.css 'left', (@input.val().length * 10 + 50) + 'px'
+      @select.css 'left', (@input.val().length * 5 + 50) + 'px'
 
     # 侦听 input 变化
     inputListner: (e) ->
@@ -294,15 +305,26 @@
           @stack.push @msg
           data = @render @msg
           @append data[0], data[1]
-          @input.val('')
+          @clearInput()
+          @clearSelect()
         # up
         else if e.keyCode is 38
           #@input.value = @stack.up()
-          @select.focus()
+          if @select.is ':hidden'
+            @input.val @stack.up()
+            @input.prop 'selectionStart', @input.val().length
+            e.preventDefault()
+          else
+            @select.focus()
         # down
         else if e.keyCode is 40
           #@input.value = @stack.down()
-          @select.focus()
+          if @select.is ':hidden'
+            @input.val @stack.down()
+            @input.prop 'selectionStart', @input.val().length
+            e.preventDefault()
+          else
+            @select.focus()
         # right
         #else if e.keyCode is 39
           #@select.focus()
@@ -331,7 +353,6 @@
       bind @body, KEYDOWN, (e) =>
         if e.keyCode is 88 and e.ctrlKey
           if @isHide then @show() else @hide()
-
 
       # 绑定windown错误捕捉
       #bind win, ERROR, (e) =>
