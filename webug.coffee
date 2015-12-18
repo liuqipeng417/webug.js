@@ -54,7 +54,7 @@
   class Webug
     # 模板HTML
     HTML = '
-          <div id="webug-container" class="panel panel-default" style="height:300px;overflow: scroll;position:fixed;bottom:0;left:0;padding-top:10px;margin:0;">
+          <div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;">
               <div class="btn-group pull-right" role="group" aria-label="...">
                       <button id="webug-clear" type="button" class="btn btn-info">
                           <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
@@ -63,18 +63,13 @@
                           <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button>
                       </button>
                   </div>
-                <div style="margin: 40px 0 10px">
-                  <ul id="webug-ul" class="list-group" style="">
+                  <ul id="webug-ul" class="list-group" style="height:200px;overflow-y:scroll;margin: 40px 0 10px">
                   </ul>
                   <div class="input-group input-group-bg">
                       <span class="input-group-addon ">></span>
                       <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3">
                   </div>
-                </div>
-                  <div class="col-xs-2" style="position:fixed;bottom:20px;left:30px">
-                  <select id="webug-select" class="form-control" >
-                  </select>
-                  </div>
+                  <select id="webug-select" class="form-control" size="" style="width:200px;position:fixed;bottom:40px;left:50px;display:none"></select>
           </div>
      '
 
@@ -88,11 +83,11 @@
 
     # 绑定事件
     bind = (ele, event, callback) ->
-      ele.on event, callback
+      $(ele).on event, callback
 
     # 解除绑定事件
     unbind = (ele, event, callback) ->
-      ele.on event, callback
+      #ele.on event, callback
 
     isNull = (val) -> val is null
 
@@ -104,7 +99,7 @@
     isObejct = (val) ->
       typeof val is "object" and not isArray(val) and not isNull(val)
 
-    getBody = -> doc.body or $("body") or $("html")
+    getBody = -> doc.body or $ "body"
 
     # 获取对象的属性名字
     getAttrs = (obj) ->
@@ -141,48 +136,20 @@
 
       props
 
-    # 设置节点 class
-    setEleClass = (ele, cl) ->
-      ele.setAttribute 'class', cl
-
-    # 设置节点内容
-    setEleContent = (ele, val) ->
-      ele.innerHTML = val
-
-    # 创建节点
-    createEle = (na) ->
-      doc.createElement na
-
     # 创建 li 节点并赋予内容
     createLiEle = (val, nor) ->
-      li = createEle 'li'
-      li.innerHTML = '<span class="glyphicon glyphicon-menu-right"></span>'
+      li = $ '<li>'
+      sp = '<span class="glyphicon glyphicon-menu-right"></span><span style="margin-left:16px">'
       cl = 'list-group-item '
-      if !nor
-          cl += 'text-danger '
-          li.innerHTML = '<span class="glyphicon glyphicon-remove"></span>'
-      li.innerHTML += val
-      setEleClass li, cl
-      #sp1 = createSpanEle ''
-      #sp2 = createSpanEle val
-      #li.appendChild sp1
-      #li.appendChild sp2
+      if nor is no
+        cl += 'text-danger '
+        sp = '<span class="glyphicon glyphicon-remove"></span><span style="margin-left:16px">'
+      else if nor is 'result'
+        sp = '<span style="margin-left:30px"></span><span>'
+      sp += val + '</span>'
+      li.html sp
+      li.addClass cl
       li
-
-    # 创建 option 节点并赋予内容
-    createOptionEle = (val) ->
-      option = createEle 'option'
-      setEleContent option, val
-
-    # 创建 span 节点并赋予内容
-    createSpanEle = (val) ->
-      span = createEle 'span'
-      if val is ''
-        setEleClass span, 'glyphicon glyphicon-menu-right'
-      else
-        setEleClass span, 'glyphicon glyphicon-remove'
-        setEleContent span, val
-        span
 
     # 数据处理
     render:  (msg, console) ->
@@ -195,31 +162,26 @@
         if not console? then @append yes, msg
         try
           data = eval.call win, msg
-          [yes, if isObejct data then data.toString() else data]
+          ['result', if isObejct data then data.toString() else data]
         catch error
           [no, error]
 
-    # 对象处理
-    handleObject: () ->
-
     append: (trueOrErr, value) ->
       li = createLiEle(value, trueOrErr)
-      @ul.appendChild li
+      @ul.append li
       @scrollBottom()
 
     # 清除所有内容
     clear: ->
-      @ul.innerHTML = ''
+      @ul.empty()
 
     show: ->
       @isHide = no
-      @container.setAttribute 'style', 'display: block'
-      @
+      @container.show()
 
     hide: ->
       @isHide = yes
-      @container.setAttribute 'style', 'display: none'
-      @
+      @container.hide()
 
     # 搜索当前 env 下符合 val 开头的属性
     searchAttribute: (val, env) ->
@@ -234,30 +196,39 @@
       all = ''
       for tmp in array
         all += '<option>' + tmp + '</option>'
-      @select.innerHTML = all
+      @select.html all
       if array.length > 8 then size = 8 else size = array.length + 1
-      @select.setAttribute 'size', size
+      @select.attr 'size', size
+      @controlSelectPos()
+      if size is 1 then @select.hide() else @select.show()
 
     clearSelect: ->
-      @select.innerHTML = ''
+      @select.html ''
+      @select.hide()
+
+    controlSelectPos: ->
+      @select.css 'left', (@input.val().length * 10 + 50) + 'px'
 
     # 侦听 input 变化
     inputListner: (e) ->
-      val = @input.value
-      pos = val.lastIndexOf('.')
-      if pos is -1
-        env = win
-        # 输入后清空当前环境，之前把这个清空放在 input 回车事件里面，出现一个大坑
-        # 我们输入完之后删除 input 的内容也会在不断监听变化
-        # 因为字符串中存在字符'.'，导致又把 @env 设置了环境，导致清除失败
-        @env = ''
+      val = @input.val()
+      if val.length is 0
+        @select.hide()
       else
-        tmp= val.substring 0, pos
-        @env = tmp + '.'
-        env = eval tmp
-        # alert JSON.stringify env
-      val = val.substring pos + 1, val.length
-      @appendInSelect @searchAttribute val, env
+        pos = val.lastIndexOf('.')
+        if pos is -1
+          env = win
+          # 输入后清空当前环境，之前把这个清空放在 input 回车事件里面，出现一个大坑
+          # 我们输入完之后删除 input 的内容也会在不断监听变化
+          # 因为字符串中存在字符'.'，导致又把 @env 设置了环境，导致清除失败
+          @env = ''
+        else
+          tmp= val.substring 0, pos
+          @env = tmp + '.'
+          env = eval tmp
+          # alert JSON.stringify env
+        val = val.substring pos + 1, val.length
+        @appendInSelect @searchAttribute val, env
 
     # 绑定window，捕捉js报错信息
     errListener: (error) ->
@@ -272,14 +243,14 @@
 
     # 自动滚到至底部
     scrollBottom: ->
-      @container.scrollTop = @container.scrollHeight
+      @ul.scrollTop @ul.prop 'scrollHeight'
 
     selectPos: ->
       @select
     constructor: ->
       # 是否初始化以及隐藏
       @isInit = no
-
+      @isHide = no
       @msg = ''
 
       @body = getBody()
@@ -308,18 +279,22 @@
       @ul = $ '#webug-ul'
       @select = $ '#webug-select'
 
-
+      console.log @ul
+      # console.log @btn_clear
       # 绑定事件
       bind @btn_clear, CLICK, =>
         @clear()
 
+      bind @btn_close, CLICK, =>
+        @hide()
+
       bind @input, KEYDOWN, (e) =>
         if e.keyCode is 13
-          @msg = @input.value
+          @msg = @input.val()
           @stack.push @msg
           data = @render @msg
           @append data[0], data[1]
-          @input.value = ''
+          @input.val('')
         # up
         else if e.keyCode is 38
           #@input.value = @stack.up()
@@ -340,7 +315,7 @@
       bind @select, KEYDOWN, (e) =>
         if e.keyCode is 13
           #alert(@env)
-          @input.value = @env + @select.value
+          @input.val @env + @select.val()
           @input.focus()
           @clearSelect()
         else if e.keyCode is 37
@@ -349,7 +324,7 @@
           e.preventDefault()
 
       bind @select, CLICK, (e) =>
-        @input.value = @select.value
+        @input.val @select.val()
         @input.focus()
 
       # 绑定 crtl + x 快捷键 (控制显示消失)
@@ -359,8 +334,8 @@
 
 
       # 绑定windown错误捕捉
-      bind win, ERROR, (e) =>
-        @errListener(e)
+      #bind win, ERROR, (e) =>
+      #  @errListener(e)
 
       # 劫持 console.log 方法
       # 生效条件为将 webug.js 放在要执行js语句前面
@@ -369,6 +344,5 @@
         @append(data[0], data[1])
         UNDEFINED
 
-      @isInit = yes
-      @
+    @
 ) window, document

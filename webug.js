@@ -60,9 +60,9 @@
 
     })();
     return Webug = (function() {
-      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, TRUE, UNDEFINED, bind, createEle, createLiEle, createOptionEle, createSpanEle, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, setEleClass, setEleContent, unbind;
+      var CHANGE, CLICK, ERROR, HTML, INPUT, KEYDOWN, TRUE, UNDEFINED, bind, createLiEle, enumerable, enumerableAndNotEnumerable, getAttrs, getBody, getPropertyName, isArray, isNull, isNumber, isObejct, notEnumerable, unbind;
 
-      HTML = '<div id="webug-container" class="panel panel-default" style="height:300px;overflow: scroll;position:fixed;bottom:0;left:0;padding-top:10px;margin:0;"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <div style="margin: 40px 0 10px"> <ul id="webug-ul" class="list-group" style=""> </ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> </div> <div class="col-xs-2" style="position:fixed;bottom:20px;left:30px"> <select id="webug-select" class="form-control" > </select> </div> </div>';
+      HTML = '<div id="webug-container" class="panel panel-default" style="position:fixed;bottom:0;left:0;padding-top:10px;margin:0;"> <div class="btn-group pull-right" role="group" aria-label="..."> <button id="webug-clear" type="button" class="btn btn-info"> <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> </button> <button id="webug-close" type="button" class="btn btn-danger"> <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span></button> </button> </div> <ul id="webug-ul" class="list-group" style="height:200px;overflow-y:scroll;margin: 40px 0 10px"> </ul> <div class="input-group input-group-bg"> <span class="input-group-addon ">></span> <input id="webug-input" type="text" class="form-control" placeholder="" aria-describedby="sizing-addon3"> </div> <select id="webug-select" class="form-control" size="" style="width:200px;position:fixed;bottom:40px;left:50px;display:none"></select> </div>';
 
       UNDEFINED = void 0;
 
@@ -79,12 +79,10 @@
       CHANGE = 'change';
 
       bind = function(ele, event, callback) {
-        return ele.on(event, callback);
+        return $(ele).on(event, callback);
       };
 
-      unbind = function(ele, event, callback) {
-        return ele.on(event, callback);
-      };
+      unbind = function(ele, event, callback) {};
 
       isNull = function(val) {
         return val === null;
@@ -101,7 +99,7 @@
       };
 
       getBody = function() {
-        return doc.body || $("body") || $("html");
+        return doc.body || $("body");
       };
 
       getAttrs = function(obj) {
@@ -152,48 +150,21 @@
         return props;
       };
 
-      setEleClass = function(ele, cl) {
-        return ele.setAttribute('class', cl);
-      };
-
-      setEleContent = function(ele, val) {
-        return ele.innerHTML = val;
-      };
-
-      createEle = function(na) {
-        return doc.createElement(na);
-      };
-
       createLiEle = function(val, nor) {
-        var cl, li;
-        li = createEle('li');
-        li.innerHTML = '<span class="glyphicon glyphicon-menu-right"></span>';
+        var cl, li, sp;
+        li = $('<li>');
+        sp = '<span class="glyphicon glyphicon-menu-right"></span><span style="margin-left:16px">';
         cl = 'list-group-item ';
-        if (!nor) {
+        if (nor === false) {
           cl += 'text-danger ';
-          li.innerHTML = '<span class="glyphicon glyphicon-remove"></span>';
+          sp = '<span class="glyphicon glyphicon-remove"></span><span style="margin-left:16px">';
+        } else if (nor === 'result') {
+          sp = '<span style="margin-left:30px"></span><span>';
         }
-        li.innerHTML += val;
-        setEleClass(li, cl);
+        sp += val + '</span>';
+        li.html(sp);
+        li.addClass(cl);
         return li;
-      };
-
-      createOptionEle = function(val) {
-        var option;
-        option = createEle('option');
-        return setEleContent(option, val);
-      };
-
-      createSpanEle = function(val) {
-        var span;
-        span = createEle('span');
-        if (val === '') {
-          return setEleClass(span, 'glyphicon glyphicon-menu-right');
-        } else {
-          setEleClass(span, 'glyphicon glyphicon-remove');
-          setEleContent(span, val);
-          return span;
-        }
       };
 
       Webug.prototype.render = function(msg, console) {
@@ -206,7 +177,7 @@
           }
           try {
             data = eval.call(win, msg);
-            return [true, isObejct(data) ? data.toString() : data];
+            return ['result', isObejct(data) ? data.toString() : data];
           } catch (error1) {
             error = error1;
             return [false, error];
@@ -214,29 +185,25 @@
         }
       };
 
-      Webug.prototype.handleObject = function() {};
-
       Webug.prototype.append = function(trueOrErr, value) {
         var li;
         li = createLiEle(value, trueOrErr);
-        this.ul.appendChild(li);
+        this.ul.append(li);
         return this.scrollBottom();
       };
 
       Webug.prototype.clear = function() {
-        return this.ul.innerHTML = '';
+        return this.ul.empty();
       };
 
       Webug.prototype.show = function() {
         this.isHide = false;
-        this.container.setAttribute('style', 'display: block');
-        return this;
+        return this.container.show();
       };
 
       Webug.prototype.hide = function() {
         this.isHide = true;
-        this.container.setAttribute('style', 'display: none');
-        return this;
+        return this.container.hide();
       };
 
       Webug.prototype.searchAttribute = function(val, env) {
@@ -259,33 +226,48 @@
           tmp = array[i];
           all += '<option>' + tmp + '</option>';
         }
-        this.select.innerHTML = all;
+        this.select.html(all);
         if (array.length > 8) {
           size = 8;
         } else {
           size = array.length + 1;
         }
-        return this.select.setAttribute('size', size);
+        this.select.attr('size', size);
+        this.controlSelectPos();
+        if (size === 1) {
+          return this.select.hide();
+        } else {
+          return this.select.show();
+        }
       };
 
       Webug.prototype.clearSelect = function() {
-        return this.select.innerHTML = '';
+        this.select.html('');
+        return this.select.hide();
+      };
+
+      Webug.prototype.controlSelectPos = function() {
+        return this.select.css('left', (this.input.val().length * 10 + 50) + 'px');
       };
 
       Webug.prototype.inputListner = function(e) {
         var env, pos, tmp, val;
-        val = this.input.value;
-        pos = val.lastIndexOf('.');
-        if (pos === -1) {
-          env = win;
-          this.env = '';
+        val = this.input.val();
+        if (val.length === 0) {
+          return this.select.hide();
         } else {
-          tmp = val.substring(0, pos);
-          this.env = tmp + '.';
-          env = eval(tmp);
+          pos = val.lastIndexOf('.');
+          if (pos === -1) {
+            env = win;
+            this.env = '';
+          } else {
+            tmp = val.substring(0, pos);
+            this.env = tmp + '.';
+            env = eval(tmp);
+          }
+          val = val.substring(pos + 1, val.length);
+          return this.appendInSelect(this.searchAttribute(val, env));
         }
-        val = val.substring(pos + 1, val.length);
-        return this.appendInSelect(this.searchAttribute(val, env));
       };
 
       Webug.prototype.errListener = function(error) {
@@ -294,7 +276,7 @@
       };
 
       Webug.prototype.scrollBottom = function() {
-        return this.container.scrollTop = this.container.scrollHeight;
+        return this.ul.scrollTop(this.ul.prop('scrollHeight'));
       };
 
       Webug.prototype.selectPos = function() {
@@ -303,6 +285,7 @@
 
       function Webug() {
         this.isInit = false;
+        this.isHide = false;
         this.msg = '';
         this.body = getBody();
         this.stack = new Stack();
@@ -323,20 +306,26 @@
         this.input = $('#webug-input');
         this.ul = $('#webug-ul');
         this.select = $('#webug-select');
+        console.log(this.ul);
         bind(this.btn_clear, CLICK, (function(_this) {
           return function() {
             return _this.clear();
+          };
+        })(this));
+        bind(this.btn_close, CLICK, (function(_this) {
+          return function() {
+            return _this.hide();
           };
         })(this));
         bind(this.input, KEYDOWN, (function(_this) {
           return function(e) {
             var data;
             if (e.keyCode === 13) {
-              _this.msg = _this.input.value;
+              _this.msg = _this.input.val();
               _this.stack.push(_this.msg);
               data = _this.render(_this.msg);
               _this.append(data[0], data[1]);
-              return _this.input.value = '';
+              return _this.input.val('');
             } else if (e.keyCode === 38) {
               return _this.select.focus();
             } else if (e.keyCode === 40) {
@@ -352,7 +341,7 @@
         bind(this.select, KEYDOWN, (function(_this) {
           return function(e) {
             if (e.keyCode === 13) {
-              _this.input.value = _this.env + _this.select.value;
+              _this.input.val(_this.env + _this.select.val());
               _this.input.focus();
               return _this.clearSelect();
             } else if (e.keyCode === 37) {
@@ -363,7 +352,7 @@
         })(this));
         bind(this.select, CLICK, (function(_this) {
           return function(e) {
-            _this.input.value = _this.select.value;
+            _this.input.val(_this.select.val());
             return _this.input.focus();
           };
         })(this));
@@ -378,12 +367,7 @@
             }
           };
         })(this));
-        bind(win, ERROR, (function(_this) {
-          return function(e) {
-            return _this.errListener(e);
-          };
-        })(this));
-        win.console.log = (function(_this) {
+        return win.console.log = (function(_this) {
           return function(val) {
             var data;
             data = _this.render(val, true);
@@ -391,9 +375,9 @@
             return UNDEFINED;
           };
         })(this);
-        this.isInit = true;
-        return this;
       };
+
+      Webug;
 
       return Webug;
 
