@@ -172,7 +172,10 @@
           data = eval.call win, msg
           ['result',
             if isObejct data
-              JSON.stringify data
+              try
+                JSON.stringify data
+              catch error
+                data.toString()
             else if isFunction data
               if !!data.toString
                 data.toString()
@@ -401,6 +404,6 @@
         data = @render val, yes
         @append(data[0], data[1])
         UNDEFINED
-      
+
     @
 ) window, document

@@ -189,7 +189,27 @@
           }
           try {
             data = eval.call(win, msg);
-            return ['result', isObejct(data) ? JSON.stringify(data) : isFunction(data) ? !!data.toString ? data.toString() : !!data.valueOf ? data.valueOf() : void 0 : data];
+            return [
+              'result', (function() {
+                var error1;
+                if (isObejct(data)) {
+                  try {
+                    return JSON.stringify(data);
+                  } catch (error1) {
+                    error = error1;
+                    return data.toString();
+                  }
+                } else if (isFunction(data)) {
+                  if (!!data.toString) {
+                    return data.toString();
+                  } else if (!!data.valueOf) {
+                    return data.valueOf();
+                  }
+                } else {
+                  return data;
+                }
+              })()
+            ];
           } catch (error1) {
             error = error1;
             return [false, error];
