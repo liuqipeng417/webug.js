@@ -2,9 +2,10 @@
 (function() {
   (function(win, doc) {
     "user strict";
-    var Stack, Webug;
+    var Stack, Webug, errorMSG;
+    errorMSG = [];
     (function() {
-      var bt, css, jq;
+      var bt, css, errListener, jq;
       css = doc.createElement('link');
       jq = doc.createElement('script');
       bt = doc.createElement('script');
@@ -23,11 +24,22 @@
         if (!bt.readyState || /loaded|complete/.test(bt.readyState)) {
           console.log('load ok');
           bt.onload = bt.readystatechange = null;
-          return webug = new Webug;
+          webug = new Webug;
+          return win.addEventListener('error', function() {
+            return alert(1);
+          }, false);
         }
       };
       doc.body.appendChild(css);
-      return doc.body.appendChild(jq);
+      doc.body.appendChild(jq);
+      win.addEventListener('error', function(e) {
+        return errListener(e);
+      }, false);
+      return errListener = function(error) {
+        var msg;
+        msg = "Error: filename: " + error.filename + " lineno: " + error.lineno + " message: " + error.message + " type: " + error.type + " ";
+        return errorMSG.push(msg);
+      };
     })();
     Stack = (function() {
       function Stack() {
@@ -308,19 +320,6 @@
         }
       };
 
-
-      /* 绑定window，捕捉js报错信息
-      errListener: (error) ->
-         * 只输出有用的错误信息
-        msg = [
-          "Error:"
-          "filename: #{error.filename}"
-          "lineno: #{error.lineno}"
-          "message: #{error.message}"
-          "type: #{error.type}"
-        ]
-       */
-
       Webug.prototype.scrollBottom = function() {
         return this.ul.scrollTop(this.ul.prop('scrollHeight'));
       };
@@ -340,50 +339,61 @@
       }
 
       Webug.prototype.init = function() {
-        var div;
+        var div, i, len, x;
         this.isHide = false;
         this.env = '';
         div = $('<div style="position:fixed;bottom:0;left:0;"></div>');
         div.html(HTML);
         this.body.append(div);
         this.container = $('#webug-container');
-        this.btn_clear = $('#webug-clear');
-        this.btn_close = $('#webug-close');
+        this.btnClear = $('#webug-clear');
+        this.btnClose = $('#webug-close');
         this.input = $('#webug-input');
         this.ul = $('#webug-ul');
         this.select = $('#webug-select');
-        this.div_up = $('#webug-up');
-        this.is_Mouse_Down = false;
-        bind(this.div_up, MOUSEDOWN, (function(_this) {
+        this.divUp = $('#webug-up');
+        win.console.log = (function(_this) {
+          return function(val) {
+            var data;
+            data = _this.render(val, true);
+            _this.append(data[0], data[1]);
+            return UNDEFINED;
+          };
+        })(this);
+        for (i = 0, len = errorMSG.length; i < len; i++) {
+          x = errorMSG[i];
+          this.append(false, x);
+        }
+        this.isMouseDown = false;
+        bind(this.divUp, MOUSEDOWN, (function(_this) {
           return function(e) {
-            _this.src_pos_y = e.pageY;
-            return _this.is_Mouse_Down = true;
+            _this.srcPosY = e.pageY;
+            return _this.isMouseDown = true;
           };
         })(this));
         bind(doc, CLICK + MOUSEUP, (function(_this) {
           return function(e) {
-            if (_this.is_Mouse_Down === true) {
-              return _this.is_Mouse_Down = false;
+            if (_this.isMouseDown === true) {
+              return _this.isMouseDown = false;
             }
           };
         })(this));
         bind(doc, MOUSEMOVE, (function(_this) {
           return function(e) {
-            var move_Y;
-            if (_this.is_Mouse_Down === true) {
-              _this.dest_pos_y = e.pageY;
-              move_Y = _this.src_pos_y - _this.dest_pos_y;
-              _this.src_pos_y = _this.dest_pos_y;
-              return _this.ul.height(_this.ul.height() + move_Y);
+            if (_this.isMouseDown === true) {
+              _this.destPosY = e.pageY;
+              _this.moveY = _this.srcPosY - _this.destPosY;
+              _this.srcPosY = _this.destPosY;
+              return _this.ul.height(_this.ul.height() + _this.moveY);
             }
           };
         })(this));
-        bind(this.btn_clear, CLICK, (function(_this) {
+        bind(this.btnClear, CLICK, (function(_this) {
           return function() {
             return _this.clear();
           };
         })(this));
-        bind(this.btn_close, CLICK, (function(_this) {
+        bind(this.btnClose, CLICK, (function(_this) {
           return function() {
             return _this.hide();
           };
@@ -440,7 +450,7 @@
             return _this.input.focus();
           };
         })(this));
-        bind(this.body, KEYDOWN, (function(_this) {
+        return bind(this.body, KEYDOWN, (function(_this) {
           return function(e) {
             if (e.keyCode === 88 && e.ctrlKey) {
               if (_this.isHide) {
@@ -451,14 +461,6 @@
             }
           };
         })(this));
-        return win.console.log = (function(_this) {
-          return function(val) {
-            var data;
-            data = _this.render(val, true);
-            _this.append(data[0], data[1]);
-            return UNDEFINED;
-          };
-        })(this);
       };
 
       Webug;

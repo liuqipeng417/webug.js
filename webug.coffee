@@ -1,6 +1,9 @@
 ((win, doc) ->
   "user strict"
 
+  # 存储后续执行js错误信息
+  errorMSG = []
+
   # 同步加载相关资源
   (() ->
     css = doc.createElement 'link'
@@ -8,20 +11,43 @@
     bt = doc.createElement 'script'
     css.setAttribute 'rel', 'styleSheet'
     css.setAttribute 'href', 'bootstrap/css/bootstrap.min.css'
+
     jq.src = 'jquery.min.js'
     jq.onload = jq.readyreadystatechange = () ->
       if !jq.readyState || /loaded|complete/.test jq.readyState
         console.log 'jq ok'
         doc.body.appendChild(bt)
+
     bt.src = 'bootstrap/js/bootstrap.min.js'
     bt.onload = bt.readyreadystatechange = () ->
       if !bt.readyState || /loaded|complete/.test bt.readyState
         console.log 'load ok'
         bt.onload = bt.readystatechange = null
-
         webug = new Webug
+        win.addEventListener 'error', () ->
+          alert 1
+        , false
+
     doc.body.appendChild css
-    doc.body.appendChild jq)()
+    doc.body.appendChild jq
+
+    win.addEventListener 'error', (e) ->
+      errListener(e)
+    , false
+
+    #绑定window，捕捉js报错信息
+    errListener = (error) ->
+      # 只输出有用的错误信息
+      msg ="
+      Error:
+      filename: #{error.filename}
+      lineno: #{error.lineno}
+      message: #{error.message}
+      type: #{error.type} "
+
+      # alert msg.join ' '
+      errorMSG.push msg
+  )()
 
 
   # 暂存执行语句
@@ -46,6 +72,7 @@
         @data[@index++]
       else
         @data[@index]
+
 
   class Webug
     # 模板HTML
@@ -193,7 +220,7 @@
         @ul.append li
         @scrollBottom()
 
-    # 清除所有内容
+    # 清除命令内容
     clear: ->
       @ul.empty()
 
@@ -255,25 +282,13 @@
         val = val.substring pos + 1, val.length
         @appendInSelect @searchAttribute val, env
 
-    ### 绑定window，捕捉js报错信息
-    errListener: (error) ->
-      # 只输出有用的错误信息
-      msg = [
-        "Error:"
-        "filename: #{error.filename}"
-        "lineno: #{error.lineno}"
-        "message: #{error.message}"
-        "type: #{error.type}"
-      ]
-
-    ###
-
     # 自动滚到至底部
     scrollBottom: ->
       @ul.scrollTop @ul.prop 'scrollHeight'
 
     selectPos: ->
       @select
+
     constructor: ->
     # 是否初始化以及隐藏
       @isInit = no
@@ -300,42 +315,52 @@
       @body.append div
 
       @container = $ '#webug-container'
-      @btn_clear = $ '#webug-clear'
-      @btn_close = $ '#webug-close'
+      @btnClear = $ '#webug-clear'
+      @btnClose = $ '#webug-close'
       @input = $ '#webug-input'
       @ul = $ '#webug-ul'
       @select = $ '#webug-select'
-      @div_up = $ '#webug-up'
+      @divUp = $ '#webug-up'
 
       # console.log @ul
-      # console.log @btn_clear
+      # console.log @btnClear
       # 绑定事件
 
+      # 劫持 console.log 方法
+      # 生效条件为将 webug.js 放在要执行js语句前面
+      win.console.log = (val) =>
+        data = @render val, yes
+        @append(data[0], data[1])
+        UNDEFINED
+
+      for x in errorMSG
+        @append no, x
+
       # 拖拽
-      @is_Mouse_Down = no
-      bind @div_up, MOUSEDOWN, (e) =>
-        @src_pos_y = e.pageY;
-        #console.log @src_pos_y
-        @is_Mouse_Down = yes
+      @isMouseDown = no
+      bind @divUp, MOUSEDOWN, (e) =>
+        @srcPosY = e.pageY;
+        #console.log @srcPosY
+        @isMouseDown = yes
 
       bind doc, CLICK + MOUSEUP, (e) =>
-        if @is_Mouse_Down is yes
-          @is_Mouse_Down = no
+        if @isMouseDown is yes
+          @isMouseDown = no
           #console.log ok
 
       bind doc, MOUSEMOVE, (e) =>
-        if @is_Mouse_Down is yes
-          @dest_pos_y = e.pageY
-          move_Y = @src_pos_y - @dest_pos_y
-          #console.log @ul.height() + move_Y
-          @src_pos_y = @dest_pos_y
-          @ul.height @ul.height() + move_Y
+        if @isMouseDown is yes
+          @destPosY = e.pageY
+          @moveY = @srcPosY - @destPosY
+          #console.log @ul.height() + @moveY
+          @srcPosY = @destPosY
+          @ul.height @ul.height() + @moveY
 
       # 按钮
-      bind @btn_clear, CLICK, =>
+      bind @btnClear, CLICK, =>
         @clear()
 
-      bind @btn_close, CLICK, =>
+      bind @btnClose, CLICK, =>
         @hide()
 
       # 输入框
@@ -393,17 +418,6 @@
       bind @body, KEYDOWN, (e) =>
         if e.keyCode is 88 and e.ctrlKey
           if @isHide then @show() else @hide()
-
-      # 绑定windown错误捕捉
-      # bind win, ERROR, (e) =>
-      #  @errListener(e)
-
-      # 劫持 console.log 方法
-      # 生效条件为将 webug.js 放在要执行js语句前面
-      win.console.log = (val) =>
-        data = @render val, yes
-        @append(data[0], data[1])
-        UNDEFINED
 
     @
 ) window, document

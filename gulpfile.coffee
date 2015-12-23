@@ -5,10 +5,10 @@ __build__ = "build"
 gulp = require "gulp"
 uglify = require "gulp-uglify"
 
-swallowError =  (error)->
+swallowError = (error) ->
 # If you want details of the error in the console
-  console.log(error.toString())
-  @emit("end")
+  console.log error.toString()
+  @emit "end"
 
 #============================js压缩合并===========================
 gulp.task "js", ->
@@ -16,7 +16,7 @@ gulp.task "js", ->
     "webug.js"
   ])
   .pipe uglify()
-  .pipe gulp.dest("#{__build__}/")
+  .pipe gulp.dest "#{__build__}/"
 
 #============================默认===========================
 gulp.task "default", ["js"]
